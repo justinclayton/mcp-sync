@@ -6,6 +6,7 @@ import { loadConfig } from './resolve.ts';
 import { readJsonFile, writeJsonFile } from './json.ts';
 import { ALL_HARNESSES, getHarnessByName, type HarnessAdapter } from './harnesses/index.ts';
 import type { McpConfig, McpServer } from './schema.ts';
+import { getTransport } from './schema.ts';
 
 const VERSION = '0.1.0';
 
@@ -231,7 +232,7 @@ async function main(): Promise<void> {
     );
     for (const name of serverNames) {
       const server = servers[name]!;
-      p.log.message(`  ${pc.green('•')} ${pc.bold(name)} ${pc.dim(`(${server.transport})`)}`);
+      p.log.message(`  ${pc.green('•')} ${pc.bold(name)} ${pc.dim(`(${getTransport(server)})`)}`);
     }
     p.log.message(`  → ${harnesses.map(h => h.displayName).join(', ')}`);
 

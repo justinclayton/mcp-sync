@@ -2,33 +2,22 @@ import { z } from 'zod';
 
 /**
  * Canonical MCP server configuration schema.
- * This is the universal format that gets translated to each harness's native config.
+ * Matches Claude Code's .mcp.json format — the dominant harness.
+ * Transport is inferred: `command` present → stdio, `url` present → http/streamable.
  */
 
 const StdioServerSchema = z.object({
-  transport: z.literal('stdio'),
   command: z.string(),
   args: z.array(z.string()).optional(),
   env: z.record(z.string()).optional(),
-});
+}).strict();
 
 const HttpServerSchema = z.object({
-  transport: z.literal('http'),
   url: z.string().url(),
   headers: z.record(z.string()).optional(),
-});
+}).strict();
 
-const SseServerSchema = z.object({
-  transport: z.literal('sse'),
-  url: z.string().url(),
-  headers: z.record(z.string()).optional(),
-});
-
-export const McpServerSchema = z.discriminatedUnion('transport', [
-  StdioServerSchema,
-  HttpServerSchema,
-  SseServerSchema,
-]);
+export const McpServerSchema = z.union([StdioServerSchema, HttpServerSchema]);
 
 export const McpConfigSchema = z.object({
   $schema: z.string().optional(),
@@ -38,5 +27,9 @@ export const McpConfigSchema = z.object({
 export type McpServer = z.infer<typeof McpServerSchema>;
 export type StdioServer = z.infer<typeof StdioServerSchema>;
 export type HttpServer = z.infer<typeof HttpServerSchema>;
-export type SseServer = z.infer<typeof SseServerSchema>;
 export type McpConfig = z.infer<typeof McpConfigSchema>;
+
+/** Determine transport type from server shape */
+export function getTransport(server: McpServer): 'stdio' | 'http' {
+  return 'command' in server ? 'stdio' : 'http';
+}

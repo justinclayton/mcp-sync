@@ -3,34 +3,27 @@ import { join } from 'path';
 import { homedir } from 'os';
 import type { HarnessAdapter } from './types.ts';
 import type { McpServer } from '../schema.ts';
+import { getTransport } from '../schema.ts';
 
 function translateServer(server: McpServer): Record<string, unknown> {
-  switch (server.transport) {
-    case 'stdio': {
-      const entry: Record<string, unknown> = {
-        type: 'stdio',
-        command: server.command,
-      };
-      if (server.args?.length) entry.args = server.args;
-      if (server.env && Object.keys(server.env).length) entry.env = server.env;
-      return entry;
-    }
-    case 'http': {
-      const entry: Record<string, unknown> = {
-        type: 'http',
-        url: server.url,
-      };
-      if (server.headers && Object.keys(server.headers).length) entry.headers = server.headers;
-      return entry;
-    }
-    case 'sse': {
-      const entry: Record<string, unknown> = {
-        type: 'sse',
-        url: server.url,
-      };
-      if (server.headers && Object.keys(server.headers).length) entry.headers = server.headers;
-      return entry;
-    }
+  const transport = getTransport(server);
+  if (transport === 'stdio') {
+    const s = server as { command: string; args?: string[]; env?: Record<string, string> };
+    const entry: Record<string, unknown> = {
+      type: 'stdio',
+      command: s.command,
+    };
+    if (s.args?.length) entry.args = s.args;
+    if (s.env && Object.keys(s.env).length) entry.env = s.env;
+    return entry;
+  } else {
+    const s = server as { url: string; headers?: Record<string, string> };
+    const entry: Record<string, unknown> = {
+      type: 'http',
+      url: s.url,
+    };
+    if (s.headers && Object.keys(s.headers).length) entry.headers = s.headers;
+    return entry;
   }
 }
 
@@ -46,7 +39,6 @@ export const copilot: HarnessAdapter = {
   },
 
   configPath(scope, projectDir) {
-    // Copilot uses .mcp.json at project root or in home for global
     if (scope === 'global') {
       return join(homedir(), '.mcp.json');
     }

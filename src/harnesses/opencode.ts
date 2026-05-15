@@ -3,34 +3,27 @@ import { join } from 'path';
 import { homedir } from 'os';
 import type { HarnessAdapter } from './types.ts';
 import type { McpServer } from '../schema.ts';
+import { getTransport } from '../schema.ts';
 
 function translateServer(server: McpServer): Record<string, unknown> {
-  switch (server.transport) {
-    case 'stdio': {
-      const cmd = [server.command, ...(server.args ?? [])];
-      const entry: Record<string, unknown> = {
-        type: 'local',
-        command: cmd,
-      };
-      if (server.env && Object.keys(server.env).length) entry.env = server.env;
-      return entry;
-    }
-    case 'http': {
-      const entry: Record<string, unknown> = {
-        type: 'remote',
-        url: server.url,
-      };
-      if (server.headers && Object.keys(server.headers).length) entry.headers = server.headers;
-      return entry;
-    }
-    case 'sse': {
-      const entry: Record<string, unknown> = {
-        type: 'remote',
-        url: server.url,
-      };
-      if (server.headers && Object.keys(server.headers).length) entry.headers = server.headers;
-      return entry;
-    }
+  const transport = getTransport(server);
+  if (transport === 'stdio') {
+    const s = server as { command: string; args?: string[]; env?: Record<string, string> };
+    const cmd = [s.command, ...(s.args ?? [])];
+    const entry: Record<string, unknown> = {
+      type: 'local',
+      command: cmd,
+    };
+    if (s.env && Object.keys(s.env).length) entry.env = s.env;
+    return entry;
+  } else {
+    const s = server as { url: string; headers?: Record<string, string> };
+    const entry: Record<string, unknown> = {
+      type: 'remote',
+      url: s.url,
+    };
+    if (s.headers && Object.keys(s.headers).length) entry.headers = s.headers;
+    return entry;
   }
 }
 

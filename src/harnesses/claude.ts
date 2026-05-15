@@ -3,28 +3,12 @@ import { join } from 'path';
 import { homedir } from 'os';
 import type { HarnessAdapter } from './types.ts';
 import type { McpServer } from '../schema.ts';
+import { getTransport } from '../schema.ts';
 
-function translateServer(server: McpServer): Record<string, unknown> {
-  switch (server.transport) {
-    case 'stdio': {
-      const entry: Record<string, unknown> = {
-        command: server.command,
-      };
-      if (server.args?.length) entry.args = server.args;
-      if (server.env && Object.keys(server.env).length) entry.env = server.env;
-      return entry;
-    }
-    case 'http':
-    case 'sse': {
-      const entry: Record<string, unknown> = {
-        url: server.url,
-      };
-      if (server.headers && Object.keys(server.headers).length) entry.headers = server.headers;
-      return entry;
-    }
-  }
-}
-
+/**
+ * Claude Code adapter.
+ * Claude's native format is our canonical format — pass through as-is.
+ */
 export const claude: HarnessAdapter = {
   name: 'claude',
   displayName: 'Claude Code',
@@ -44,9 +28,10 @@ export const claude: HarnessAdapter = {
   },
 
   translate(servers) {
+    // Our canonical format IS Claude's format — just pass through
     const mcpServers: Record<string, unknown> = {};
     for (const [name, server] of Object.entries(servers)) {
-      mcpServers[name] = translateServer(server);
+      mcpServers[name] = { ...server };
     }
     return { mcpServers };
   },
