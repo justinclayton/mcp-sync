@@ -102,7 +102,8 @@ ${pc.bold('Arguments:')}
   source              Path or URL to mcp.json (default: ./mcp.json)
 
 ${pc.bold('Options:')}
-  --to <harness>      Target harness (claude, copilot, opencode). Repeatable.
+  --to <harness>      Target harness (claude, claude-desktop, cursor, copilot,
+                      windsurf, zed, opencode, roocode, cline, amazonq). Repeatable.
   --add <name>        Sync only the named server from the config
   --rm <name>         Remove the named server from target harness configs
   --global, -g        Write to global (home directory) harness configs
