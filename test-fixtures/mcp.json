@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "github": {
+      "transport": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${env:GH_TOKEN}"
+      }
+    },
+    "terraform": {
+      "transport": "stdio",
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "hashicorp/terraform-mcp-server:0.5.1"],
+      "env": {
+        "TFE_TOKEN": "${env:TFE_TOKEN}"
+      }
+    },
+    "postgres": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres"]
+    }
+  }
+}
