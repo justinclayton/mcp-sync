@@ -2,7 +2,7 @@
 
 **Write your MCP config once, install it everywhere.**
 
-Every AI coding harness (Claude Code, Claude Desktop, Cursor, GitHub Copilot, Windsurf, Zed, OpenCode, Roo Code, Cline, Amazon Q) has its own MCP server configuration format. They're all JSON, and they're all different.
+Every AI coding harness (Claude Code, Cursor, GitHub Copilot, Windsurf, OpenCode) has its own MCP server configuration format. They're all JSON, and they're all different.
 
 There are lots of MCP installers / managers out there, but literally all I wanted was [skills.sh](https://skills.sh) for MCP servers. So, here we are.
 
@@ -69,7 +69,7 @@ Each server needs a `transport` (`stdio`, `http`, or `sse`) and the appropriate 
 
 | Flag | Description |
 |------|-------------|
-| `--to <harness>` | Target harness (repeatable): `claude`, `claude-desktop`, `cursor`, `copilot`, `windsurf`, `zed`, `opencode`, `roocode`, `cline`, `amazonq` |
+| `--to <harness>` | Target harness (repeatable): `claude`, `cursor`, `copilot`, `windsurf`, `opencode` |
 | `--add <name>` | Sync only the named server from config |
 | `--rm <name>` | Remove named server from target configs |
 | `--global`, `-g` | Write to global harness configs |
@@ -80,15 +80,10 @@ Each server needs a `transport` (`stdio`, `http`, or `sse`) and the appropriate 
 | Harness | `--to` flag | Config file (project) | Config file (global) |
 |---------|-------------|----------------------|---------------------|
 | Claude Code | `claude` | `.mcp.json` | `~/.claude.json` |
-| Claude Desktop | `claude-desktop` | — (global only) | `~/Library/Application Support/Claude/claude_desktop_config.json` |
 | Cursor | `cursor` | `.cursor/mcp.json` | `~/.cursor/mcp.json` |
 | GitHub Copilot | `copilot` | `.github/copilot/mcp.json` | `~/.mcp.json` |
 | Windsurf | `windsurf` | `.windsurf/mcp.json` | `~/.codeium/windsurf/mcp_config.json` |
-| Zed | `zed` | `.zed/settings.json` | `~/Library/Application Support/Zed/settings.json` |
 | OpenCode | `opencode` | `opencode.json` | `~/.config/opencode/opencode.json` |
-| Roo Code | `roocode` | `.roo/mcp.json` | VS Code globalStorage |
-| Cline | `cline` | — (global only) | VS Code globalStorage |
-| Amazon Q | `amazonq` | `.amazonq/mcp.json` | `~/.amazonq/mcp.json` |
 
 ## Important Note
 
