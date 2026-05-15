@@ -8,7 +8,8 @@ import { ALL_HARNESSES, getHarnessByName, type HarnessAdapter } from './harnesse
 import type { McpConfig, McpServer } from './schema.ts';
 import { getTransport } from './schema.ts';
 
-const VERSION = '0.1.0';
+import pkg from '../package.json';
+const VERSION = pkg.version;
 
 interface CliOptions {
   source: string;
