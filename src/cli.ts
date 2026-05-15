@@ -120,6 +120,64 @@ ${pc.bold('Examples:')}
 `);
 }
 
+async function selectServers(servers: Record<string, McpServer>): Promise<Record<string, McpServer>> {
+  const serverNames = Object.keys(servers);
+
+  if (serverNames.length === 1) {
+    return servers;
+  }
+
+  const ALL_SENTINEL = '__all__';
+  const options = [
+    { value: ALL_SENTINEL, label: 'All', hint: `${serverNames.length} servers` },
+    ...serverNames.map(name => ({
+      value: name,
+      label: name,
+      hint: getTransport(servers[name]!),
+    })),
+  ];
+
+  const selected = await p.multiselect({
+    message: 'Select MCP servers to install (space to toggle)',
+    options,
+    required: true,
+  });
+
+  if (p.isCancel(selected)) {
+    p.cancel('Cancelled.');
+    process.exit(0);
+  }
+
+  const selectedValues = selected as string[];
+
+  if (selectedValues.includes(ALL_SENTINEL)) {
+    return servers;
+  }
+
+  const result: Record<string, McpServer> = {};
+  for (const name of selectedValues) {
+    result[name] = servers[name]!;
+  }
+  return result;
+}
+
+async function selectScope(): Promise<'project' | 'global'> {
+  const selected = await p.select({
+    message: 'Installation scope',
+    options: [
+      { value: 'project' as const, label: 'Project', hint: 'install in this project only' },
+      { value: 'global' as const, label: 'Global', hint: 'install in home directory (available across all projects)' },
+    ],
+  });
+
+  if (p.isCancel(selected)) {
+    p.cancel('Cancelled.');
+    process.exit(0);
+  }
+
+  return selected as 'project' | 'global';
+}
+
 async function selectHarnesses(scope: 'global' | 'project', projectDir: string): Promise<HarnessAdapter[]> {
   const options = ALL_HARNESSES.map(h => ({
     value: h,
@@ -202,8 +260,10 @@ async function main(): Promise<void> {
       process.exit(1);
     }
     servers = { [options.add]: config.mcpServers[options.add]! };
-  } else {
+  } else if (options.yes) {
     servers = config.mcpServers;
+  } else {
+    servers = await selectServers(config.mcpServers);
   }
 
   const serverNames = Object.keys(servers);
@@ -211,6 +271,8 @@ async function main(): Promise<void> {
     p.cancel('No MCP servers defined in config.');
     process.exit(1);
   }
+
+  p.log.info(`Found ${pc.green(String(serverNames.length))} server(s)`);
 
   // --- Determine target harnesses ---
   let harnesses: HarnessAdapter[];
@@ -223,6 +285,16 @@ async function main(): Promise<void> {
   } else {
     harnesses = await selectHarnesses(scope, projectDir);
   }
+
+  // --- Determine scope ---
+  if (!options.global && !options.yes && !options.to.length) {
+    const selectedScope = await selectScope();
+    if (selectedScope === 'global') {
+      options.global = true;
+    }
+  }
+
+  const finalScope = options.global ? 'global' : 'project';
 
   // --- Confirm ---
   const scopeLabel = options.global ? 'globally' : 'to this project';
@@ -246,7 +318,7 @@ async function main(): Promise<void> {
 
   // --- Write configs ---
   for (const harness of harnesses) {
-    const configFile = harness.configPath(scope, projectDir);
+    const configFile = harness.configPath(finalScope, projectDir);
     const existing = readJsonFile(configFile, {});
     const translated = harness.translate(servers);
     const merged = harness.merge(existing, translated);

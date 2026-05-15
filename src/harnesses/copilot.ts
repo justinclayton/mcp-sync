@@ -42,7 +42,7 @@ export const copilot: HarnessAdapter = {
     if (scope === 'global') {
       return join(homedir(), '.mcp.json');
     }
-    return join(projectDir, '.mcp.json');
+    return join(projectDir, '.github', 'copilot', 'mcp.json');
   },
 
   translate(servers) {
