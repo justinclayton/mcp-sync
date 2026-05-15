@@ -1,0 +1,33 @@
+{
+  "name": "mcp-sync",
+  "version": "0.0.1",
+  "description": "Write your MCP config once, install it everywhere. Universal MCP configuration sync for Claude, Copilot, OpenCode, Cursor, and more.",
+  "type": "module",
+  "bin": {
+    "mcp-sync": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node18 --outfile=dist/cli.js --format=esm",
+    "test": "vitest"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "copilot",
+    "opencode",
+    "cursor",
+    "ai",
+    "config",
+    "sync"
+  ],
+  "author": "Justin Clayton",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/justinclayton/mcp-sync.git"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
