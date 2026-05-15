@@ -1,6 +1,6 @@
 {
   "name": "@justinclayton/mcp-sync",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Write your MCP config once, install it everywhere. Universal MCP configuration sync for Claude, Copilot, OpenCode, Cursor, and more.",
   "type": "module",
   "bin": {
