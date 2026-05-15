@@ -2,7 +2,9 @@
 
 **Write your MCP config once, install it everywhere.**
 
-Every AI coding harness (Claude Code, GitHub Copilot, OpenCode, Cursor...) has its own MCP server configuration format. They're all JSON, but with different schemas, keys, file names, and locations.
+Every AI coding harness (Claude Code, GitHub Copilot, OpenCode, Cursor...) has its own MCP server configuration format. They're all JSON, and they're all different.
+
+There are lots of MCP installers / managers out there, but literally all I wanted was [skills.sh](https://skills.sh) for MCP servers. So, here we are.
 
 `mcp-sync` lets you define your MCP servers once in a canonical `mcp.json` and sync them to any harness with one command.
 
@@ -63,24 +65,6 @@ npx @justinclayton/mcp-sync --global --yes
 
 Each server needs a `transport` (`stdio`, `http`, or `sse`) and the appropriate fields for that transport type.
 
-## Supported Harnesses
-
-| Harness | `--to` flag | Config file (project) | Config file (global) |
-|---------|-------------|----------------------|---------------------|
-| Claude Code | `claude` | `.mcp.json` | `~/.claude.json` |
-| GitHub Copilot | `copilot` | `.mcp.json` | `~/.mcp.json` |
-| OpenCode | `opencode` | `opencode.json` | `~/.config/opencode/opencode.json` |
-
-## How It Works
-
-`mcp-sync` translates your canonical config to each harness's native format:
-
-- **Claude**: `mcpServers.{name}` with `command`/`args` (no type field)
-- **Copilot**: `mcpServers.{name}` with `type: "stdio"/"http"` + `command`/`args`
-- **OpenCode**: `mcp.{name}` with `type: "local"/"remote"` + `command` as array
-
-Existing config is preserved — `mcp-sync` only adds/updates the servers it manages.
-
 ## Options
 
 | Flag | Description |
@@ -90,6 +74,18 @@ Existing config is preserved — `mcp-sync` only adds/updates the servers it man
 | `--rm <name>` | Remove named server from target configs |
 | `--global`, `-g` | Write to global harness configs |
 | `--yes`, `-y` | Skip confirmation prompt |
+
+## Supported Harnesses
+
+| Harness | `--to` flag | Config file (project) | Config file (global) |
+|---------|-------------|----------------------|---------------------|
+| Claude Code | `claude` | `.mcp.json` | `~/.claude.json` |
+| GitHub Copilot | `copilot` | `.mcp.json` | `~/.mcp.json` |
+| OpenCode | `opencode` | `opencode.json` | `~/.config/opencode/opencode.json` |
+
+## Important Note
+
+This works best when you're referencing MCP servers that are either remote (http/sse) or **self-installing** -- using commands that will install and run in one go, such as `docker run`, `npx` (for npm), or `uvx` (for python).
 
 ## License
 
