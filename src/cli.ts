@@ -102,7 +102,8 @@ ${pc.bold('Arguments:')}
   source              Path or URL to mcp.json (default: ./mcp.json)
 
 ${pc.bold('Options:')}
-  --to <harness>      Target harness (claude, copilot, opencode). Repeatable.
+  --to <harness>      Target harness (claude, cursor, copilot, windsurf,
+                      opencode). Repeatable.
   --add <name>        Sync only the named server from the config
   --rm <name>         Remove the named server from target harness configs
   --global, -g        Write to global (home directory) harness configs
@@ -320,6 +321,18 @@ async function main(): Promise<void> {
   for (const harness of harnesses) {
     const configFile = harness.configPath(finalScope, projectDir);
     const existing = readJsonFile(configFile, {});
+
+    // If the file already exists and has content, confirm before overwriting
+    if (!options.yes && existsSync(configFile) && Object.keys(existing).length > 0) {
+      const overwrite = await p.confirm({
+        message: `${configFile} already exists. Overwrite?`,
+      });
+      if (p.isCancel(overwrite) || !overwrite) {
+        p.log.warn(`Skipped ${harness.displayName}`);
+        continue;
+      }
+    }
+
     const translated = harness.translate(servers);
     const merged = harness.merge(existing, translated);
     writeJsonFile(configFile, merged);
