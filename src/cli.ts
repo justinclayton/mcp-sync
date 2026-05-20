@@ -321,6 +321,18 @@ async function main(): Promise<void> {
   for (const harness of harnesses) {
     const configFile = harness.configPath(finalScope, projectDir);
     const existing = readJsonFile(configFile, {});
+
+    // If the file already exists and has content, confirm before overwriting
+    if (!options.yes && existsSync(configFile) && Object.keys(existing).length > 0) {
+      const overwrite = await p.confirm({
+        message: `${configFile} already exists. Overwrite?`,
+      });
+      if (p.isCancel(overwrite) || !overwrite) {
+        p.log.warn(`Skipped ${harness.displayName}`);
+        continue;
+      }
+    }
+
     const translated = harness.translate(servers);
     const merged = harness.merge(existing, translated);
     writeJsonFile(configFile, merged);
