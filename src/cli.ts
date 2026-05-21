@@ -7,6 +7,8 @@ import { readJsonFile, writeJsonFile } from './json.ts';
 import { ALL_HARNESSES, getHarnessByName, type HarnessAdapter } from './harnesses/index.ts';
 import type { McpConfig, McpServer } from './schema.ts';
 import { getTransport } from './schema.ts';
+import { resolveKeychainServers, validateKeychainRefs } from './resolve-keychain.ts';
+import { removeWrapper } from './wrappers.ts';
 
 import pkg from '../package.json';
 const VERSION = pkg.version;
@@ -225,6 +227,11 @@ async function main(): Promise<void> {
       p.log.success(`Removed ${pc.bold(options.rm)} from ${harness.displayName} ${pc.dim(`(${configFile})`)}`);
     }
 
+    // Also remove any generated wrapper for this server
+    if (removeWrapper(options.rm)) {
+      p.log.info(`Removed keychain wrapper for ${pc.bold(options.rm)}`);
+    }
+
     p.outro('Done!');
     return;
   }
@@ -274,6 +281,30 @@ async function main(): Promise<void> {
   }
 
   p.log.info(`Found ${pc.green(String(serverNames.length))} server(s)`);
+
+  // --- Resolve ${keychain:...} references ---
+  const keychainResult = resolveKeychainServers(servers, sourcePath.toString());
+
+  // Show warnings for unsupported usage (e.g. HTTP headers)
+  for (const warning of keychainResult.warnings) {
+    p.log.warn(pc.yellow(warning));
+  }
+
+  // Validate keychain items exist
+  if (keychainResult.allRefs.length > 0) {
+    const validationWarnings = validateKeychainRefs(keychainResult.allRefs);
+    for (const warning of validationWarnings) {
+      p.log.warn(pc.yellow(`⚠ ${warning}`));
+    }
+    if (keychainResult.generatedWrappers.length > 0) {
+      p.log.info(
+        `Generated ${pc.green(String(keychainResult.generatedWrappers.length))} keychain wrapper(s)`
+      );
+    }
+  }
+
+  // Use resolved servers (with wrappers) for the rest of the pipeline
+  servers = keychainResult.servers;
 
   // --- Determine target harnesses ---
   let harnesses: HarnessAdapter[];

@@ -89,6 +89,47 @@ Each server needs a `transport` (`stdio`, `http`, or `sse`) and the appropriate 
 
 This works best when you're referencing MCP servers that are either remote (http/sse) or **self-installing** -- using commands that will install and run in one go, such as `docker run`, `npx` (for npm), or `uvx` (for python).
 
+## Keychain Credential Resolution (macOS)
+
+Instead of writing wrapper scripts to pull tokens from the macOS Keychain, use the `${keychain:<service>}` template syntax directly in your `env` values:
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${keychain:github-mcp-token}"
+      }
+    }
+  }
+}
+```
+
+When `mcp-sync` encounters `${keychain:...}` references, it automatically generates a thin wrapper script at `~/.mcp-sync/wrappers/<server>.sh` that resolves the credential at runtime via `security find-generic-password`. The harness config then points to the wrapper — you never need to write or manage wrapper scripts yourself.
+
+### Setting up Keychain items
+
+```bash
+# Add a token to the macOS Keychain
+security add-generic-password -s "github-mcp-token" -a "$USER" -w "<your-token>"
+```
+
+### Account override
+
+By default, the current `$USER` is used as the account. To specify a different account:
+
+```json
+"GITHUB_TOKEN": "${keychain:github-mcp-token/my-other-account}"
+```
+
+### Validation
+
+During sync, `mcp-sync` checks that referenced Keychain items exist and warns (with setup instructions) if any are missing. The sync still proceeds — the wrapper will fail at MCP server start time if the item isn't resolved.
+
+> **Note:** This feature is currently macOS-only and only supports `stdio` transport servers. `${keychain:...}` in HTTP `headers` is not yet supported.
+
 ## License
 
 MIT
