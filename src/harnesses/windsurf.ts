@@ -4,6 +4,7 @@ import { homedir } from 'os';
 import type { HarnessAdapter } from './types.ts';
 import type { McpServer } from '../schema.ts';
 import { getTransport } from '../schema.ts';
+import { transformForWindsurf } from '../agents/transform.ts';
 
 /**
  * Windsurf (Codeium) adapter.
@@ -78,5 +79,16 @@ export const windsurf: HarnessAdapter = {
     }
     merged.mcpServers = servers;
     return merged;
+  },
+
+  agentsDir(scope, projectDir) {
+    if (scope === 'global') {
+      return join(homedir(), '.codeium', 'windsurf', 'agents');
+    }
+    return join(projectDir, '.windsurf', 'agents');
+  },
+
+  transformAgent(frontmatter, body) {
+    return { frontmatter: transformForWindsurf(frontmatter), body };
   },
 };

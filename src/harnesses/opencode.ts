@@ -4,6 +4,7 @@ import { homedir } from 'os';
 import type { HarnessAdapter } from './types.ts';
 import type { McpServer } from '../schema.ts';
 import { getTransport } from '../schema.ts';
+import { transformForOpenCode } from '../agents/transform.ts';
 
 function translateServer(server: McpServer): Record<string, unknown> {
   const transport = getTransport(server);
@@ -73,5 +74,16 @@ export const opencode: HarnessAdapter = {
     }
     merged.mcp = servers;
     return merged;
+  },
+
+  agentsDir(scope, projectDir) {
+    if (scope === 'global') {
+      return join(homedir(), '.config', 'opencode', 'agents');
+    }
+    return join(projectDir, '.opencode', 'agents');
+  },
+
+  transformAgent(frontmatter, body) {
+    return { frontmatter: transformForOpenCode(frontmatter), body };
   },
 };
