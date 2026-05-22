@@ -4,6 +4,7 @@ import { homedir } from 'os';
 import type { HarnessAdapter } from './types.ts';
 import type { McpServer } from '../schema.ts';
 import { getTransport } from '../schema.ts';
+import { transformForCopilot } from '../agents/transform.ts';
 
 function translateServer(server: McpServer): Record<string, unknown> {
   const transport = getTransport(server);
@@ -73,5 +74,16 @@ export const copilot: HarnessAdapter = {
     }
     merged.mcpServers = servers;
     return merged;
+  },
+
+  agentsDir(scope, projectDir) {
+    if (scope === 'global') {
+      return join(homedir(), '.copilot', 'agents');
+    }
+    return join(projectDir, '.github', 'agents');
+  },
+
+  transformAgent(frontmatter, body) {
+    return { frontmatter: transformForCopilot(frontmatter), body };
   },
 };

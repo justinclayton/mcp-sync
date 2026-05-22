@@ -3,6 +3,7 @@ import { join } from 'path';
 import { homedir } from 'os';
 import type { HarnessAdapter } from './types.ts';
 import type { McpServer } from '../schema.ts';
+import { transformForCursor } from '../agents/transform.ts';
 
 /**
  * Cursor adapter.
@@ -57,5 +58,16 @@ export const cursor: HarnessAdapter = {
     }
     merged.mcpServers = servers;
     return merged;
+  },
+
+  agentsDir(scope, projectDir) {
+    if (scope === 'global') {
+      return join(homedir(), '.cursor', 'agents');
+    }
+    return join(projectDir, '.cursor', 'agents');
+  },
+
+  transformAgent(frontmatter, body) {
+    return { frontmatter: transformForCursor(frontmatter), body };
   },
 };

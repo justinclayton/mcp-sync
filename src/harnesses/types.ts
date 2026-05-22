@@ -17,4 +17,13 @@ export interface HarnessAdapter {
   merge(existing: Record<string, unknown>, translated: Record<string, unknown>): Record<string, unknown>;
   /** Remove server entries by name from existing native config */
   remove(existing: Record<string, unknown>, serverNames: string[]): Record<string, unknown>;
+
+  /** Directory path for agent definitions at the given scope */
+  agentsDir(scope: 'global' | 'project', projectDir: string): string;
+
+  /**
+   * Transform an agent's frontmatter for this harness.
+   * Returns the (possibly modified) frontmatter and body.
+   */
+  transformAgent(frontmatter: Record<string, unknown>, body: string): { frontmatter: Record<string, unknown>; body: string };
 }

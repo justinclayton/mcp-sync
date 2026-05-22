@@ -4,6 +4,7 @@ import { homedir } from 'os';
 import type { HarnessAdapter } from './types.ts';
 import type { McpServer } from '../schema.ts';
 import { getTransport } from '../schema.ts';
+import { transformForClaude } from '../agents/transform.ts';
 
 /**
  * Claude Code adapter.
@@ -56,5 +57,16 @@ export const claude: HarnessAdapter = {
     }
     merged.mcpServers = servers;
     return merged;
+  },
+
+  agentsDir(scope, projectDir) {
+    if (scope === 'global') {
+      return join(homedir(), '.claude', 'agents');
+    }
+    return join(projectDir, '.claude', 'agents');
+  },
+
+  transformAgent(frontmatter, body) {
+    return { frontmatter: transformForClaude(frontmatter), body };
   },
 };
